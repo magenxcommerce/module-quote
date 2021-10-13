@@ -3,110 +3,67 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
 
 namespace Magento\Quote\Test\Unit\Model;
 
-use Magento\Authorization\Model\UserContextInterface;
-use Magento\Checkout\Model\Session;
-use Magento\Checkout\Model\Type\Onepage;
-use Magento\Customer\Api\AccountManagementInterface;
-use Magento\Customer\Api\AddressRepositoryInterface;
-use Magento\Customer\Api\CustomerRepositoryInterface;
-use Magento\Customer\Api\Data\AddressInterface;
-use Magento\Customer\Api\Data\CustomerInterface;
-use Magento\Customer\Api\Data\GroupInterface;
-use Magento\Customer\Model\Customer;
-use Magento\Customer\Model\CustomerFactory;
-use Magento\Framework\Api\DataObjectHelper;
-use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\CustomerManagement;
-use Magento\Quote\Model\Quote;
-use Magento\Quote\Model\Quote\Address;
-use Magento\Quote\Model\Quote\Address\ToOrder;
-use Magento\Quote\Model\Quote\Address\ToOrderAddress;
-use Magento\Quote\Model\Quote\AddressFactory;
-use Magento\Quote\Model\Quote\Item;
-use Magento\Quote\Model\Quote\Item\ToOrderItem;
-use Magento\Quote\Model\Quote\Payment;
-use Magento\Quote\Model\Quote\Payment\ToOrderPayment;
-use Magento\Quote\Model\QuoteFactory;
-use Magento\Quote\Model\QuoteIdMask;
-use Magento\Quote\Model\QuoteIdMaskFactory;
-use Magento\Quote\Model\QuoteManagement;
-use Magento\Quote\Model\SubmitQuoteValidator;
-use Magento\Sales\Api\Data\OrderAddressInterface;
-use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\Data\OrderInterfaceFactory;
-use Magento\Sales\Api\Data\OrderItemInterface;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
 
-use Magento\Sales\Api\OrderManagementInterface;
-use Magento\Sales\Model\Order;
-use Magento\Store\Model\StoreManagerInterface;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
+use Magento\Quote\Model\CustomerManagement;
+use Magento\Sales\Api\Data\OrderAddressInterface;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @SuppressWarnings(PHPMD.TooManyFields)
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
- * @SuppressWarnings(PHPMD.ExcessiveClassLength)
  */
-class QuoteManagementTest extends TestCase
+class QuoteManagementTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var QuoteManagement
+     * @var \Magento\Quote\Model\QuoteManagement
      */
     protected $model;
 
     /**
-     * @var SubmitQuoteValidator|MockObject
+     * @var \Magento\Quote\Model\QuoteValidator|\PHPUnit_Framework_MockObject_MockObject
      */
-    protected $submitQuoteValidator;
+    protected $quoteValidator;
 
     /**
-     * @var ManagerInterface|MockObject
+     * @var \Magento\Framework\Event\ManagerInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $eventManager;
 
     /**
-     * @var OrderInterfaceFactory|MockObject
+     * @var \Magento\Sales\Api\Data\OrderInterfaceFactory|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $orderFactory;
 
     /**
-     * @var ToOrder|MockObject
+     * @var \Magento\Quote\Model\Quote\Address\ToOrder|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $quoteAddressToOrder;
 
     /**
-     * @var ToOrderPayment|MockObject
+     * @var \Magento\Quote\Model\Quote\Payment\ToOrderPayment|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $quotePaymentToOrderPayment;
 
     /**
-     * @var ToOrderAddress|MockObject
+     * @var \Magento\Quote\Model\Quote\Address\ToOrderAddress|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $quoteAddressToOrderAddress;
 
     /**
-     * @var ToOrderItem|MockObject
+     * @var \Magento\Quote\Model\Quote\Item\ToOrderItem|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $quoteItemToOrderItem;
 
     /**
-     * @var ToOrderPayment|MockObject
+     * @var \Magento\Quote\Model\Quote\Payment\ToOrderPayment|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $orderManagement;
 
     /**
-     * @var CartRepositoryInterface|MockObject
+     * @var \Magento\Quote\Api\CartRepositoryInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $quoteRepositoryMock;
 
@@ -116,118 +73,102 @@ class QuoteManagementTest extends TestCase
     protected $customerManagement;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $userContextMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $customerRepositoryMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $customerFactoryMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $quoteAddressFactory;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $storeManagerMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $checkoutSessionMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $customerSessionMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $dataObjectHelperMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $accountManagementMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $quoteMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     private $quoteIdMock;
 
     /**
-     * @var AddressRepositoryInterface
+     * @var \Magento\Customer\Api\AddressRepositoryInterface
      */
     private $addressRepositoryMock;
 
     /**
-     * @var MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject
      */
     private $quoteFactoryMock;
 
     /**
-     * @var RequestInterface|MockObject
-     */
-    private $requestMock;
-
-    /**
-     * @var RemoteAddress|MockObject
-     */
-    private $remoteAddressMock;
-
-    /**
-     * @var QuoteIdMaskFactory|MockObject
-     */
-    private $quoteIdMaskFactoryMock;
-
-    /**
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
-    protected function setUp(): void
+    protected function setUp()
     {
-        $objectManager = new ObjectManager($this);
+        $objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
 
-        $this->submitQuoteValidator = $this->createMock(SubmitQuoteValidator::class);
-        $this->eventManager = $this->getMockForAbstractClass(ManagerInterface::class);
-        $this->orderFactory = $this->getMockBuilder(OrderInterfaceFactory::class)
-            ->addMethods(['populate'])
-            ->onlyMethods(['create'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->quoteAddressToOrder = $this->createMock(ToOrder::class);
-        $this->quotePaymentToOrderPayment = $this->createMock(ToOrderPayment::class);
-        $this->quoteAddressToOrderAddress = $this->createMock(ToOrderAddress::class);
-        $this->quoteItemToOrderItem = $this->createMock(ToOrderItem::class);
-        $this->orderManagement = $this->getMockForAbstractClass(OrderManagementInterface::class);
-        $this->customerManagement = $this->createMock(CustomerManagement::class);
-        $this->quoteRepositoryMock = $this->getMockForAbstractClass(CartRepositoryInterface::class);
+        $this->quoteValidator = $this->createMock(\Magento\Quote\Model\QuoteValidator::class);
+        $this->eventManager = $this->getMockForAbstractClass(\Magento\Framework\Event\ManagerInterface::class);
+        $this->orderFactory = $this->createPartialMock(
+            \Magento\Sales\Api\Data\OrderInterfaceFactory::class,
+            ['create', 'populate']
+        );
+        $this->quoteAddressToOrder = $this->createMock(\Magento\Quote\Model\Quote\Address\ToOrder::class);
+        $this->quotePaymentToOrderPayment = $this->createMock(\Magento\Quote\Model\Quote\Payment\ToOrderPayment::class);
+        $this->quoteAddressToOrderAddress = $this->createMock(\Magento\Quote\Model\Quote\Address\ToOrderAddress::class);
+        $this->quoteItemToOrderItem = $this->createMock(\Magento\Quote\Model\Quote\Item\ToOrderItem::class);
+        $this->orderManagement = $this->createMock(\Magento\Sales\Api\OrderManagementInterface::class);
+        $this->customerManagement = $this->createMock(\Magento\Quote\Model\CustomerManagement::class);
+        $this->quoteRepositoryMock = $this->createMock(\Magento\Quote\Api\CartRepositoryInterface::class);
 
-        $this->userContextMock = $this->getMockForAbstractClass(UserContextInterface::class);
-        $this->customerRepositoryMock = $this->getMockBuilder(CustomerRepositoryInterface::class)
-            ->addMethods(['create'])
-            ->onlyMethods(['save', 'get', 'getById', 'getList', 'delete', 'deleteById'])
-            ->getMockForAbstractClass();
+        $this->userContextMock = $this->createMock(\Magento\Authorization\Model\UserContextInterface::class);
+        $this->customerRepositoryMock = $this->createPartialMock(
+            \Magento\Customer\Api\CustomerRepositoryInterface::class,
+            ['create', 'save', 'get', 'getById', 'getList', 'delete', 'deleteById']
+        );
         $this->customerFactoryMock = $this->createPartialMock(
-            CustomerFactory::class,
+            \Magento\Customer\Model\CustomerFactory::class,
             ['create']
         );
         $this->storeManagerMock = $this->getMockForAbstractClass(
-            StoreManagerInterface::class,
+            \Magento\Store\Model\StoreManagerInterface::class,
             [],
             '',
             false,
@@ -236,53 +177,41 @@ class QuoteManagementTest extends TestCase
             ['getStore', 'getStoreId']
         );
 
-        $this->quoteMock = $this->getMockBuilder(Quote::class)
-            ->addMethods(['setCustomerEmail', 'setCustomerGroupId', 'setCustomerId', 'setRemoteIp', 'setXForwardedFor'])
-            ->onlyMethods(
-                [
-                    'assignCustomer',
-                    'collectTotals',
-                    'getBillingAddress',
-                    'getCheckoutMethod',
-                    'getPayment',
-                    'setCheckoutMethod',
-                    'setCustomerIsGuest',
-                    'getId'
-                ]
-            )
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->quoteMock = $this->createPartialMock(\Magento\Quote\Model\Quote::class, [
+                'getId',
+                'getCheckoutMethod',
+                'setCheckoutMethod',
+                'setCustomerId',
+                'setCustomerEmail',
+                'getBillingAddress',
+                'setCustomerIsGuest',
+                'setCustomerGroupId',
+                'assignCustomer',
+                'getPayment',
+            ]);
 
         $this->quoteAddressFactory = $this->createPartialMock(
-            AddressFactory::class,
+            \Magento\Quote\Model\Quote\AddressFactory::class,
             ['create']
         );
 
-        $this->dataObjectHelperMock = $this->createMock(DataObjectHelper::class);
-        $this->checkoutSessionMock = $this->getMockBuilder(Session::class)
-            ->addMethods(
-                [
-                    'setLastQuoteId',
-                    'setLastSuccessQuoteId',
-                    'setLastOrderId',
-                    'setLastRealOrderId',
-                    'setLastOrderStatus'
-                ]
-            )
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->dataObjectHelperMock = $this->createMock(\Magento\Framework\Api\DataObjectHelper::class);
+        $this->checkoutSessionMock = $this->createPartialMock(
+            \Magento\Checkout\Model\Session::class,
+            ['setLastQuoteId', 'setLastSuccessQuoteId', 'setLastOrderId', 'setLastRealOrderId', 'setLastOrderStatus']
+        );
         $this->customerSessionMock = $this->createMock(\Magento\Customer\Model\Session::class);
-        $this->accountManagementMock = $this->getMockForAbstractClass(AccountManagementInterface::class);
+        $this->accountManagementMock = $this->createMock(\Magento\Customer\Api\AccountManagementInterface::class);
 
-        $this->quoteFactoryMock = $this->createPartialMock(QuoteFactory::class, ['create']);
-        $this->addressRepositoryMock = $this->getMockBuilder(AddressRepositoryInterface::class)
+        $this->quoteFactoryMock = $this->createPartialMock(\Magento\Quote\Model\QuoteFactory::class, ['create']);
+        $this->addressRepositoryMock = $this->getMockBuilder(\Magento\Customer\Api\AddressRepositoryInterface::class)
             ->getMockForAbstractClass();
 
         $this->model = $objectManager->getObject(
-            QuoteManagement::class,
+            \Magento\Quote\Model\QuoteManagement::class,
             [
                 'eventManager' => $this->eventManager,
-                'submitQuoteValidator' => $this->submitQuoteValidator,
+                'quoteValidator' => $this->quoteValidator,
                 'orderFactory' => $this->orderFactory,
                 'orderManagement' => $this->orderManagement,
                 'customerManagement' => $this->customerManagement,
@@ -306,12 +235,9 @@ class QuoteManagementTest extends TestCase
         );
 
         // Set the new dependency
-        $this->quoteIdMock = $this->createMock(QuoteIdMask::class);
-        $this->quoteIdMaskFactoryMock = $this->createPartialMock(QuoteIdMaskFactory::class, ['create']);
-        $this->setPropertyValue($this->model, 'quoteIdMaskFactory', $this->quoteIdMaskFactoryMock);
-
-        $this->requestMock = $this->createPartialMockForAbstractClass(RequestInterface::class, ['getServer']);
-        $this->remoteAddressMock = $this->createMock(RemoteAddress::class);
+        $this->quoteIdMock = $this->createMock(\Magento\Quote\Model\QuoteIdMask::class);
+        $quoteIdFactoryMock = $this->createPartialMock(\Magento\Quote\Model\QuoteIdMaskFactory::class, ['create']);
+        $this->setPropertyValue($this->model, 'quoteIdMaskFactory', $quoteIdFactoryMock);
     }
 
     public function testCreateEmptyCartAnonymous()
@@ -319,11 +245,11 @@ class QuoteManagementTest extends TestCase
         $storeId = 345;
         $quoteId = 2311;
 
-        $quoteMock = $this->createMock(Quote::class);
-        $quoteAddress = $this->getMockBuilder(Address::class)
-            ->addMethods(['setCollectShippingRates'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
+        $quoteAddress = $this->createPartialMock(
+            \Magento\Quote\Model\Quote\Address::class,
+            ['setCollectShippingRates']
+        );
         $quoteAddress->expects($this->once())->method('setCollectShippingRates')->with(true);
 
         $quoteMock->expects($this->any())->method('setBillingAddress')->with($quoteAddress)->willReturnSelf();
@@ -350,22 +276,13 @@ class QuoteManagementTest extends TestCase
         $quoteId = 2311;
         $userId = 567;
 
-        $quoteMock = $this->createMock(Quote::class);
+        $quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
 
         $this->quoteRepositoryMock
             ->expects($this->once())
             ->method('getActiveForCustomer')
             ->with($userId)
             ->willThrowException(new NoSuchEntityException());
-        $customer = $this->getMockBuilder(CustomerInterface::class)
-            ->setMethods(['getDefaultBilling'])->disableOriginalConstructor()
-            ->getMockForAbstractClass();
-        $quoteAddress = $this->createPartialMock(
-            Address::class,
-            ['getCustomerId']
-        );
-        $quoteAddress->expects($this->atLeastOnce())->method('getCustomerId')->willReturn(567);
-        $quoteMock->expects($this->atLeastOnce())->method('getBillingAddress')->willReturn($quoteAddress);
 
         $this->quoteFactoryMock->expects($this->once())->method('create')->willReturn($quoteMock);
         $quoteMock->expects($this->any())->method('setStoreId')->with($storeId);
@@ -373,8 +290,6 @@ class QuoteManagementTest extends TestCase
 
         $this->quoteRepositoryMock->expects($this->once())->method('save')->with($quoteMock);
         $quoteMock->expects($this->once())->method('getId')->willReturn($quoteId);
-        $this->customerRepositoryMock->expects($this->atLeastOnce())->method('getById')->willReturn($customer);
-        $customer->expects($this->atLeastOnce())->method('getDefaultBilling')->willReturn(0);
 
         $this->storeManagerMock->expects($this->once())->method('getStore')->willReturnSelf();
         $this->storeManagerMock->expects($this->once())->method('getStoreId')->willReturn($storeId);
@@ -387,24 +302,12 @@ class QuoteManagementTest extends TestCase
         $storeId = 345;
         $userId = 567;
 
-        $quoteMock = $this->createMock(Quote::class);
+        $quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
 
         $this->quoteRepositoryMock
             ->expects($this->once())
             ->method('getActiveForCustomer')
             ->with($userId)->willReturn($quoteMock);
-
-        $customer = $this->getMockBuilder(CustomerInterface::class)
-            ->setMethods(['getDefaultBilling'])->disableOriginalConstructor()
-            ->getMockForAbstractClass();
-        $quoteAddress = $this->createPartialMock(
-            Address::class,
-            ['getCustomerId']
-        );
-        $quoteAddress->expects($this->atLeastOnce())->method('getCustomerId')->willReturn(567);
-        $quoteMock->expects($this->atLeastOnce())->method('getBillingAddress')->willReturn($quoteAddress);
-        $this->customerRepositoryMock->expects($this->atLeastOnce())->method('getById')->willReturn($customer);
-        $customer->expects($this->atLeastOnce())->method('getDefaultBilling')->willReturn(0);
 
         $this->quoteFactoryMock->expects($this->never())->method('create')->willReturn($quoteMock);
         $this->quoteRepositoryMock->expects($this->once())->method('save')->with($quoteMock);
@@ -415,18 +318,18 @@ class QuoteManagementTest extends TestCase
         $this->model->createEmptyCartForCustomer($userId);
     }
 
+    /**
+     * @expectedException \Magento\Framework\Exception\StateException
+     * @expectedExceptionMessage The customer can't be assigned to the cart. The cart belongs to a different store.
+     */
     public function testAssignCustomerFromAnotherStore()
     {
-        $this->expectException('Magento\Framework\Exception\StateException');
-        $this->expectExceptionMessage(
-            'The customer can\'t be assigned to the cart. The cart belongs to a different store.'
-        );
         $cartId = 220;
         $customerId = 455;
         $storeId = 5;
 
-        $quoteMock = $this->createMock(Quote::class);
-        $customerMock = $this->getMockForAbstractClass(CustomerInterface::class);
+        $quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
+        $customerMock = $this->createMock(\Magento\Customer\Api\Data\CustomerInterface::class);
 
         $this->quoteRepositoryMock
             ->expects($this->once())
@@ -441,7 +344,7 @@ class QuoteManagementTest extends TestCase
             ->willReturn($customerMock);
 
         $customerModelMock = $this->createPartialMock(
-            Customer::class,
+            \Magento\Customer\Model\Customer::class,
             ['load', 'getSharedStoreIds']
         );
         $this->customerFactoryMock->expects($this->once())->method('create')->willReturn($customerModelMock);
@@ -459,20 +362,21 @@ class QuoteManagementTest extends TestCase
         $this->model->assignCustomer($cartId, $customerId, $storeId);
     }
 
+    /**
+     * @expectedException \Magento\Framework\Exception\StateException
+     * @expectedExceptionMessage The customer can't be assigned to the cart because the cart isn't anonymous.
+     */
     public function testAssignCustomerToNonanonymousCart()
     {
-        $this->expectException('Magento\Framework\Exception\StateException');
-        $this->expectExceptionMessage('The customer can\'t be assigned to the cart because the cart isn\'t anonymous.');
         $cartId = 220;
         $customerId = 455;
         $storeId = 5;
 
-        $quoteMock = $this->getMockBuilder(Quote::class)
-            ->addMethods(['getCustomerId'])
-            ->onlyMethods(['setCustomer', 'setCustomerIsGuest'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $customerMock = $this->getMockForAbstractClass(CustomerInterface::class);
+        $quoteMock = $this->createPartialMock(
+            \Magento\Quote\Model\Quote::class,
+            ['getCustomerId', 'setCustomer', 'setCustomerIsGuest']
+        );
+        $customerMock = $this->createMock(\Magento\Customer\Api\Data\CustomerInterface::class);
 
         $this->quoteRepositoryMock
             ->expects($this->once())
@@ -487,7 +391,7 @@ class QuoteManagementTest extends TestCase
             ->willReturn($customerMock);
 
         $customerModelMock = $this->createPartialMock(
-            Customer::class,
+            \Magento\Customer\Model\Customer::class,
             ['load', 'getSharedStoreIds']
         );
         $this->customerFactoryMock->expects($this->once())->method('create')->willReturn($customerModelMock);
@@ -507,62 +411,20 @@ class QuoteManagementTest extends TestCase
         $this->model->assignCustomer($cartId, $customerId, $storeId);
     }
 
+    /**
+     * @expectedException \Magento\Framework\Exception\StateException
+     */
     public function testAssignCustomerNoSuchCustomer()
     {
-        $this->expectException('Magento\Framework\Exception\NoSuchEntityException');
         $cartId = 220;
         $customerId = 455;
         $storeId = 5;
 
-        $quoteMock = $this->getMockBuilder(Quote::class)
-            ->addMethods(['getCustomerId'])
-            ->onlyMethods(['setCustomer', 'setCustomerIsGuest'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->quoteRepositoryMock
-            ->expects($this->once())
-            ->method('getActive')
-            ->with($cartId)
-            ->willReturn($quoteMock);
-
-        $this->customerRepositoryMock
-            ->expects($this->once())
-            ->method('getById')
-            ->with($customerId)
-            ->willThrowException(new NoSuchEntityException());
-
-        $this->expectExceptionMessage(
-            "No such entity."
+        $quoteMock = $this->createPartialMock(
+            \Magento\Quote\Model\Quote::class,
+            ['getCustomerId', 'setCustomer', 'setCustomerIsGuest']
         );
-
-        $this->model->assignCustomer($cartId, $customerId, $storeId);
-    }
-
-    public function testAssignCustomerWithActiveCart()
-    {
-        $cartId = 220;
-        $customerId = 455;
-        $storeId = 5;
-
-        $this->getPropertyValue($this->model, 'quoteIdMaskFactory')
-            ->expects($this->once())
-            ->method('create')
-            ->willReturn($this->quoteIdMock);
-
-        $quoteMock = $this->getMockBuilder(Quote::class)
-            ->addMethods(['getCustomerId'])
-            ->onlyMethods(['setCustomer', 'setCustomerIsGuest', 'setIsActive', 'getIsActive', 'merge'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $activeQuoteMock = $this->getMockBuilder(Quote::class)
-            ->addMethods(['getCustomerId'])
-            ->onlyMethods(['setCustomer', 'setCustomerIsGuest', 'setIsActive', 'getIsActive', 'merge'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $customerMock = $this->getMockForAbstractClass(CustomerInterface::class);
+        $customerMock = $this->createMock(\Magento\Customer\Api\Data\CustomerInterface::class);
 
         $this->quoteRepositoryMock
             ->expects($this->once())
@@ -577,7 +439,7 @@ class QuoteManagementTest extends TestCase
             ->willReturn($customerMock);
 
         $customerModelMock = $this->createPartialMock(
-            Customer::class,
+            \Magento\Customer\Model\Customer::class,
             ['load', 'getSharedStoreIds']
         );
         $this->customerFactoryMock->expects($this->once())->method('create')->willReturn($customerModelMock);
@@ -593,26 +455,17 @@ class QuoteManagementTest extends TestCase
             ->willReturn([$storeId, 'some store value']);
 
         $quoteMock->expects($this->once())->method('getCustomerId')->willReturn(null);
+
         $this->quoteRepositoryMock
             ->expects($this->once())
             ->method('getForCustomer')
-            ->with($customerId)
-            ->willReturn($activeQuoteMock);
-
-        $quoteMock->expects($this->once())->method('merge')->with($activeQuoteMock)->willReturnSelf();
-        $activeQuoteMock->expects($this->once())->method('setIsActive')->with(0);
-        $this->quoteRepositoryMock->expects($this->atLeastOnce())->method('save')->with($activeQuoteMock);
-
-        $quoteMock->expects($this->once())->method('setCustomer')->with($customerMock);
-        $quoteMock->expects($this->once())->method('setCustomerIsGuest')->with(0);
-        $quoteMock->expects($this->once())->method('setIsActive')->with(1);
-
-        $this->quoteIdMock->expects($this->once())->method('load')->with($cartId, 'quote_id')->willReturnSelf();
-        $this->quoteIdMock->expects($this->once())->method('getId')->willReturn(10);
-        $this->quoteIdMock->expects($this->once())->method('delete');
-        $this->quoteRepositoryMock->expects($this->atLeastOnce())->method('save')->with($quoteMock);
+            ->with($customerId);
 
         $this->model->assignCustomer($cartId, $customerId, $storeId);
+
+        $this->expectExceptionMessage(
+            "The customer can't be assigned to the cart because the customer already has an active cart."
+        );
     }
 
     public function testAssignCustomer()
@@ -625,14 +478,15 @@ class QuoteManagementTest extends TestCase
             ->expects($this->once())
             ->method('create')
             ->willReturn($this->quoteIdMock);
+        $this->quoteIdMock->expects($this->once())->method('load')->with($cartId, 'quote_id')->willReturnSelf();
+        $this->quoteIdMock->expects($this->once())->method('getId')->willReturn(10);
+        $this->quoteIdMock->expects($this->once())->method('delete');
+        $quoteMock = $this->createPartialMock(
+            \Magento\Quote\Model\Quote::class,
+            ['getCustomerId', 'setCustomer', 'setCustomerIsGuest']
+        );
+        $customerMock = $this->createMock(\Magento\Customer\Api\Data\CustomerInterface::class);
 
-        $quoteMock = $this->getMockBuilder(Quote::class)
-            ->addMethods(['getCustomerId'])
-            ->onlyMethods(['setCustomer', 'setCustomerIsGuest', 'setIsActive', 'getIsActive', 'merge'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $customerMock = $this->getMockForAbstractClass(CustomerInterface::class);
         $this->quoteRepositoryMock
             ->expects($this->once())
             ->method('getActive')
@@ -646,12 +500,10 @@ class QuoteManagementTest extends TestCase
             ->willReturn($customerMock);
 
         $customerModelMock = $this->createPartialMock(
-            Customer::class,
+            \Magento\Customer\Model\Customer::class,
             ['load', 'getSharedStoreIds']
         );
-
         $this->customerFactoryMock->expects($this->once())->method('create')->willReturn($customerModelMock);
-
         $customerModelMock
             ->expects($this->once())
             ->method('load')
@@ -671,15 +523,9 @@ class QuoteManagementTest extends TestCase
             ->with($customerId)
             ->willThrowException(new NoSuchEntityException());
 
-        $quoteMock->expects($this->never())->method('merge');
-
         $quoteMock->expects($this->once())->method('setCustomer')->with($customerMock);
         $quoteMock->expects($this->once())->method('setCustomerIsGuest')->with(0);
-        $quoteMock->expects($this->once())->method('setIsActive')->with(1);
 
-        $this->quoteIdMock->expects($this->once())->method('load')->with($cartId, 'quote_id')->willReturnSelf();
-        $this->quoteIdMock->expects($this->once())->method('getId')->willReturn(10);
-        $this->quoteIdMock->expects($this->once())->method('delete');
         $this->quoteRepositoryMock->expects($this->once())->method('save')->with($quoteMock);
 
         $this->model->assignCustomer($cartId, $customerId, $storeId);
@@ -692,19 +538,15 @@ class QuoteManagementTest extends TestCase
         $isVirtual = false;
         $customerId = 1;
         $quoteId = 1;
-        $quoteItem = $this->createMock(Item::class);
-        $billingAddress = $this->createMock(Address::class);
-        $shippingAddress = $this->getMockBuilder(Address::class)
-            ->addMethods(['getQuoteId'])
-            ->onlyMethods(['getShippingMethod', 'getId'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $payment = $this->createMock(Payment::class);
-        $baseOrder = $this->getMockForAbstractClass(OrderInterface::class);
+        $quoteItem = $this->createMock(\Magento\Quote\Model\Quote\Item::class);
+        $billingAddress = $this->createMock(\Magento\Quote\Model\Quote\Address::class);
+        $shippingAddress = $this->createMock(\Magento\Quote\Model\Quote\Address::class);
+        $payment = $this->createMock(\Magento\Quote\Model\Quote\Payment::class);
+        $baseOrder = $this->createMock(\Magento\Sales\Api\Data\OrderInterface::class);
         $convertedBilling = $this->createPartialMockForAbstractClass(OrderAddressInterface::class, ['setData']);
         $convertedShipping = $this->createPartialMockForAbstractClass(OrderAddressInterface::class, ['setData']);
-        $convertedPayment = $this->getMockForAbstractClass(OrderPaymentInterface::class);
-        $convertedQuoteItem = $this->getMockForAbstractClass(OrderItemInterface::class);
+        $convertedPayment = $this->createMock(\Magento\Sales\Api\Data\OrderPaymentInterface::class);
+        $convertedQuoteItem = $this->createMock(\Magento\Sales\Api\Data\OrderItemInterface::class);
 
         $addresses = [$convertedShipping, $convertedBilling];
         $quoteItems = [$quoteItem];
@@ -721,9 +563,7 @@ class QuoteManagementTest extends TestCase
             $shippingAddress
         );
 
-        $this->submitQuoteValidator->expects($this->once())
-            ->method('validateQuote')
-            ->with($quote);
+        $this->quoteValidator->expects($this->once())->method('validateBeforeSubmit')->with($quote);
         $this->quoteAddressToOrder->expects($this->once())
             ->method('convert')
             ->with($shippingAddress, $orderData)
@@ -798,26 +638,26 @@ class QuoteManagementTest extends TestCase
 
         $this->quoteMock->expects($this->once())
             ->method('getCheckoutMethod')
-            ->willReturn(Onepage::METHOD_GUEST);
+            ->willReturn(\Magento\Checkout\Model\Type\Onepage::METHOD_GUEST);
         $this->quoteMock->expects($this->once())->method('setCustomerId')->with(null)->willReturnSelf();
         $this->quoteMock->expects($this->once())->method('setCustomerEmail')->with($email)->willReturnSelf();
 
-        $addressMock = $this->createPartialMock(Address::class, ['getEmail']);
+        $addressMock = $this->createPartialMock(\Magento\Quote\Model\Quote\Address::class, ['getEmail']);
         $addressMock->expects($this->once())->method('getEmail')->willReturn($email);
-        $this->quoteMock->expects($this->any())->method('getBillingAddress')->with()->willReturn($addressMock);
+        $this->quoteMock->expects($this->once())->method('getBillingAddress')->with()->willReturn($addressMock);
 
         $this->quoteMock->expects($this->once())->method('setCustomerIsGuest')->with(true)->willReturnSelf();
         $this->quoteMock->expects($this->once())
             ->method('setCustomerGroupId')
-            ->with(GroupInterface::NOT_LOGGED_IN_ID);
+            ->with(\Magento\Customer\Api\Data\GroupInterface::NOT_LOGGED_IN_ID);
 
-        /** @var MockObject|QuoteManagement $service */
-        $service = $this->getMockBuilder(QuoteManagement::class)
+        /** @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Quote\Model\QuoteManagement $service */
+        $service = $this->getMockBuilder(\Magento\Quote\Model\QuoteManagement::class)
             ->setMethods(['submit'])
             ->setConstructorArgs(
                 [
                     'eventManager' => $this->eventManager,
-                    'quoteValidator' => $this->submitQuoteValidator,
+                    'quoteValidator' => $this->quoteValidator,
                     'orderFactory' => $this->orderFactory,
                     'orderManagement' => $this->orderManagement,
                     'customerManagement' => $this->customerManagement,
@@ -835,23 +675,18 @@ class QuoteManagementTest extends TestCase
                     'checkoutSession' => $this->checkoutSessionMock,
                     'customerSession' => $this->customerSessionMock,
                     'accountManagement' => $this->accountManagementMock,
-                    'quoteFactory' => $this->quoteFactoryMock,
-                    'quoteIdMaskFactory' => $this->quoteIdMaskFactoryMock,
-                    'addressRepository' => $this->addressRepositoryMock,
-                    'request' => $this->requestMock,
-                    'remoteAddress' => $this->remoteAddressMock,
+                    'quoteFactory' => $this->quoteFactoryMock
                 ]
             )
             ->getMock();
 
         $orderMock = $this->createPartialMock(
-            Order::class,
+            \Magento\Sales\Model\Order::class,
             ['getId', 'getIncrementId', 'getStatus']
         );
         $service->expects($this->once())->method('submit')->willReturn($orderMock);
 
         $this->quoteMock->expects($this->atLeastOnce())->method('getId')->willReturn($cartId);
-        $this->quoteMock->expects($this->once())->method('collectTotals')->willReturnSelf();
 
         $orderMock->expects($this->atLeastOnce())->method('getId')->willReturn($orderId);
         $orderMock->expects($this->atLeastOnce())->method('getIncrementId')->willReturn($orderIncrementId);
@@ -872,16 +707,14 @@ class QuoteManagementTest extends TestCase
         $orderId = 332;
         $orderIncrementId = 100003332;
         $orderStatus = 'status1';
-        $remoteAddress = '192.168.1.10';
-        $forwardedForIp = '192.168.1.11';
 
-        /** @var MockObject|QuoteManagement $service */
-        $service = $this->getMockBuilder(QuoteManagement::class)
+        /** @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Quote\Model\QuoteManagement $service */
+        $service = $this->getMockBuilder(\Magento\Quote\Model\QuoteManagement::class)
             ->setMethods(['submit'])
             ->setConstructorArgs(
                 [
-                    'eventManager' => $this->eventManager,
-                    'quoteValidator' => $this->submitQuoteValidator,
+                'eventManager' => $this->eventManager,
+                    'quoteValidator' => $this->quoteValidator,
                     'orderFactory' => $this->orderFactory,
                     'orderManagement' => $this->orderManagement,
                     'customerManagement' => $this->customerManagement,
@@ -899,23 +732,19 @@ class QuoteManagementTest extends TestCase
                     'checkoutSession' => $this->checkoutSessionMock,
                     'customerSession' => $this->customerSessionMock,
                     'accountManagement' => $this->accountManagementMock,
-                    'quoteFactory' => $this->quoteFactoryMock,
-                    'quoteIdMaskFactory' => $this->quoteIdMaskFactoryMock,
-                    'addressRepository' => $this->addressRepositoryMock,
-                    'request' => $this->requestMock,
-                    'remoteAddress' => $this->remoteAddressMock,
+                    'quoteFactory' => $this->quoteFactoryMock
                 ]
             )
             ->getMock();
 
-        $orderMock = $this->createMock(Order::class);
+        $orderMock = $this->createMock(\Magento\Sales\Model\Order::class);
 
         $this->quoteRepositoryMock->expects($this->once())
             ->method('getActive')
             ->with($cartId)
             ->willReturn($this->quoteMock);
 
-        $quotePayment = $this->createMock(Payment::class);
+        $quotePayment = $this->createMock(\Magento\Quote\Model\Quote\Payment::class);
         $quotePayment->expects($this->once())
             ->method('setQuote');
         $quotePayment->expects($this->once())
@@ -926,21 +755,10 @@ class QuoteManagementTest extends TestCase
 
         $this->quoteMock->expects($this->once())
             ->method('getCheckoutMethod')
-            ->willReturn(Onepage::METHOD_CUSTOMER);
+            ->willReturn(\Magento\Checkout\Model\Type\Onepage::METHOD_CUSTOMER);
         $this->quoteMock->expects($this->never())
             ->method('setCustomerIsGuest')
             ->with(true);
-
-        $this->remoteAddressMock
-            ->method('getRemoteAddress')
-            ->willReturn($remoteAddress);
-
-        $this->requestMock
-            ->method('getServer')
-            ->willReturn($forwardedForIp);
-
-        $this->quoteMock->expects($this->once())->method('setRemoteIp')->with($remoteAddress);
-        $this->quoteMock->expects($this->once())->method('setXForwardedFor')->with($forwardedForIp);
 
         $service->expects($this->once())->method('submit')->willReturn($orderMock);
 
@@ -956,11 +774,7 @@ class QuoteManagementTest extends TestCase
         $this->checkoutSessionMock->expects($this->once())->method('setLastRealOrderId')->with($orderIncrementId);
         $this->checkoutSessionMock->expects($this->once())->method('setLastOrderStatus')->with($orderStatus);
 
-        $paymentMethod = $this->getMockBuilder(Payment::class)
-            ->addMethods(['setChecks'])
-            ->onlyMethods(['getData'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $paymentMethod = $this->createPartialMock(\Magento\Quote\Model\Quote\Payment::class, ['setChecks', 'getData']);
         $paymentMethod->expects($this->once())->method('setChecks');
         $paymentMethod->expects($this->once())->method('getData')->willReturn(['additional_data' => []]);
 
@@ -970,44 +784,43 @@ class QuoteManagementTest extends TestCase
     /**
      * @param $isGuest
      * @param $isVirtual
-     * @param Address $billingAddress
-     * @param Payment $payment
+     * @param \Magento\Quote\Model\Quote\Address $billingAddress
+     * @param \Magento\Quote\Model\Quote\Payment $payment
      * @param $customerId
      * @param $id
      * @param array $quoteItems
-     * @param Address|null $shippingAddress
-     * @return MockObject
+     * @param \Magento\Quote\Model\Quote\Address|null $shippingAddress
+     * @return \PHPUnit_Framework_MockObject_MockObject
      */
     protected function getQuote(
         $isGuest,
         $isVirtual,
-        Address $billingAddress,
-        Payment $payment,
+        \Magento\Quote\Model\Quote\Address $billingAddress,
+        \Magento\Quote\Model\Quote\Payment $payment,
         $customerId,
         $id,
         array $quoteItems,
-        Address $shippingAddress = null
+        \Magento\Quote\Model\Quote\Address $shippingAddress = null
     ) {
-        $quote = $this->getMockBuilder(Quote::class)
-            ->addMethods(['getCustomerEmail', 'getCustomerId'])
-            ->onlyMethods(
-                [
-                    'setIsActive',
-                    'getAllVisibleItems',
-                    'getCustomerIsGuest',
-                    'isVirtual',
-                    'getBillingAddress',
-                    'getShippingAddress',
-                    'getId',
-                    'getCustomer',
-                    'getAllItems',
-                    'getPayment',
-                    'reserveOrderId',
-                    'addCustomerAddress'
-                ]
-            )
-            ->disableOriginalConstructor()
-            ->getMock();
+        $quote = $this->createPartialMock(
+            \Magento\Quote\Model\Quote::class,
+            [
+                'setIsActive',
+                'getCustomerEmail',
+                'getAllVisibleItems',
+                'getCustomerIsGuest',
+                'isVirtual',
+                'getBillingAddress',
+                'getShippingAddress',
+                'getId',
+                'getCustomer',
+                'getAllItems',
+                'getPayment',
+                'reserveOrderId',
+                'getCustomerId',
+                'addCustomerAddress'
+            ]
+        );
         $quote->expects($this->once())
             ->method('setIsActive')
             ->with(false);
@@ -1027,7 +840,6 @@ class QuoteManagementTest extends TestCase
             $quote->expects($this->any())
                 ->method('getShippingAddress')
                 ->willReturn($shippingAddress);
-            $shippingAddress->expects($this->any())->method('getQuoteId')->willReturn($id);
         }
         $quote->expects($this->any())
             ->method('getBillingAddress')
@@ -1036,11 +848,10 @@ class QuoteManagementTest extends TestCase
             ->method('getPayment')
             ->willReturn($payment);
 
-        $customer = $this->getMockBuilder(Customer::class)
-            ->addMethods(['getDefaultBilling'])
-            ->onlyMethods(['getId'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $customer = $this->createPartialMock(
+            \Magento\Customer\Model\Customer::class,
+            ['getDefaultBilling', 'getId']
+        );
         $quote->expects($this->any())->method('getCustomerId')->willReturn($customerId);
 
         $customer->expects($this->once())
@@ -1062,17 +873,17 @@ class QuoteManagementTest extends TestCase
     }
 
     /**
-     * @param OrderInterface $baseOrder
+     * @param \Magento\Sales\Api\Data\OrderInterface $baseOrder
      * @param OrderAddressInterface $billingAddress
      * @param array $addresses
      * @param $payment
      * @param array $items
      * @param $quoteId
      * @param OrderAddressInterface $shippingAddress
-     * @return MockObject
+     * @return \PHPUnit_Framework_MockObject_MockObject
      */
     protected function prepareOrderFactory(
-        OrderInterface $baseOrder,
+        \Magento\Sales\Api\Data\OrderInterface $baseOrder,
         OrderAddressInterface $billingAddress,
         array $addresses,
         $payment,
@@ -1081,22 +892,21 @@ class QuoteManagementTest extends TestCase
         OrderAddressInterface $shippingAddress = null,
         $customerId = null
     ) {
-        $order = $this->getMockBuilder(Order::class)
-            ->addMethods(['addAddresses', 'setAddresses'])
-            ->onlyMethods(
-                [
-                    'setShippingAddress',
-                    'getAddressesCollection',
-                    'getAddresses',
-                    'getBillingAddress',
-                    'setBillingAddress',
-                    'setPayment',
-                    'setItems',
-                    'setQuoteId'
-                ]
-            )
-            ->disableOriginalConstructor()
-            ->getMock();
+        $order = $this->createPartialMock(
+            \Magento\Sales\Model\Order::class,
+            [
+                'setShippingAddress',
+                'getAddressesCollection',
+                'getAddresses',
+                'getBillingAddress',
+                'addAddresses',
+                'setBillingAddress',
+                'setAddresses',
+                'setPayment',
+                'setItems',
+                'setQuoteId'
+            ]
+        );
 
         $this->orderFactory->expects($this->once())
             ->method('create')
@@ -1126,13 +936,10 @@ class QuoteManagementTest extends TestCase
         return $order;
     }
 
-    /**
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
     public function testGetCartForCustomer()
     {
         $customerId = 100;
-        $cartMock = $this->createMock(Quote::class);
+        $cartMock = $this->createMock(\Magento\Quote\Model\Quote::class);
         $this->quoteRepositoryMock->expects($this->once())
             ->method('getActiveForCustomer')
             ->with($customerId)
@@ -1173,11 +980,6 @@ class QuoteManagementTest extends TestCase
         return $object;
     }
 
-    /**
-     * Test submit for customer
-     *
-     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
-     */
     public function testSubmitForCustomer()
     {
         $orderData = [];
@@ -1185,19 +987,15 @@ class QuoteManagementTest extends TestCase
         $isVirtual = false;
         $customerId = 1;
         $quoteId = 1;
-        $quoteItem = $this->createMock(Item::class);
-        $billingAddress = $this->createMock(Address::class);
-        $shippingAddress = $this->getMockBuilder(Address::class)
-            ->addMethods(['getQuoteId'])
-            ->onlyMethods(['getShippingMethod', 'getId', 'exportCustomerAddress'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $payment = $this->createMock(Payment::class);
-        $baseOrder = $this->getMockForAbstractClass(OrderInterface::class);
+        $quoteItem = $this->createMock(\Magento\Quote\Model\Quote\Item::class);
+        $billingAddress = $this->createMock(\Magento\Quote\Model\Quote\Address::class);
+        $shippingAddress = $this->createMock(\Magento\Quote\Model\Quote\Address::class);
+        $payment = $this->createMock(\Magento\Quote\Model\Quote\Payment::class);
+        $baseOrder = $this->createMock(\Magento\Sales\Api\Data\OrderInterface::class);
         $convertedBilling = $this->createPartialMockForAbstractClass(OrderAddressInterface::class, ['setData']);
         $convertedShipping = $this->createPartialMockForAbstractClass(OrderAddressInterface::class, ['setData']);
-        $convertedPayment = $this->getMockForAbstractClass(OrderPaymentInterface::class);
-        $convertedQuoteItem = $this->getMockForAbstractClass(OrderItemInterface::class);
+        $convertedPayment = $this->createMock(\Magento\Sales\Api\Data\OrderPaymentInterface::class);
+        $convertedQuoteItem = $this->createMock(\Magento\Sales\Api\Data\OrderItemInterface::class);
 
         $addresses = [$convertedShipping, $convertedBilling];
         $quoteItems = [$quoteItem];
@@ -1214,8 +1012,7 @@ class QuoteManagementTest extends TestCase
             $shippingAddress
         );
 
-        $this->submitQuoteValidator->method('validateQuote')
-            ->with($quote);
+        $this->quoteValidator->expects($this->once())->method('validateBeforeSubmit')->with($quote);
         $this->quoteAddressToOrder->expects($this->once())
             ->method('convert')
             ->with($shippingAddress, $orderData)
@@ -1257,7 +1054,7 @@ class QuoteManagementTest extends TestCase
             $quoteId,
             $convertedShipping
         );
-        $customerAddressMock = $this->getMockBuilder(AddressInterface::class)
+        $customerAddressMock = $this->getMockBuilder(\Magento\Customer\Api\Data\AddressInterface::class)
             ->getMockForAbstractClass();
         $shippingAddress->expects($this->once())->method('exportCustomerAddress')->willReturn($customerAddressMock);
         $this->addressRepositoryMock->expects($this->once())->method('save')->with($customerAddressMock);
@@ -1286,7 +1083,7 @@ class QuoteManagementTest extends TestCase
      * @param string $className
      * @param array $methods
      *
-     * @return MockObject
+     * @return \PHPUnit_Framework_MockObject_MockObject
      */
     private function createPartialMockForAbstractClass($className, $methods = [])
     {

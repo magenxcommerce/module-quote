@@ -103,8 +103,6 @@ class TotalsCollector
     }
 
     /**
-     * Collect quote totals.
-     *
      * @param \Magento\Quote\Model\Quote $quote
      * @return Address\Total
      */
@@ -117,8 +115,6 @@ class TotalsCollector
     }
 
     /**
-     * Collect quote.
-     *
      * @param \Magento\Quote\Model\Quote $quote
      * @return \Magento\Quote\Model\Quote\Address\Total
      */
@@ -176,8 +172,6 @@ class TotalsCollector
     }
 
     /**
-     * Validate coupon code.
-     *
      * @param \Magento\Quote\Model\Quote $quote
      * @return $this
      */
@@ -209,12 +203,11 @@ class TotalsCollector
      */
     protected function _collectItemsQtys(\Magento\Quote\Model\Quote $quote)
     {
-        $quoteItems = $quote->getAllVisibleItems();
         $quote->setItemsCount(0);
         $quote->setItemsQty(0);
         $quote->setVirtualItemsQty(0);
 
-        foreach ($quoteItems as $item) {
+        foreach ($quote->getAllVisibleItems() as $item) {
             if ($item->getParentItem()) {
                 continue;
             }
@@ -238,8 +231,6 @@ class TotalsCollector
     }
 
     /**
-     * Collect address total.
-     *
      * @param \Magento\Quote\Model\Quote $quote
      * @param Address $address
      * @return Address\Total

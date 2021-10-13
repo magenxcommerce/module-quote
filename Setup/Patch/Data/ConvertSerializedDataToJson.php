@@ -3,15 +3,18 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 namespace Magento\Quote\Setup\Patch\Data;
 
+use Magento\Framework\App\ResourceConnection;
 use Magento\Quote\Setup\ConvertSerializedDataToJsonFactory;
 use Magento\Quote\Setup\QuoteSetupFactory;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchVersionInterface;
 
 /**
- * Convert quote serialized data to json.
+ * Class ConvertSerializedDataToJson
+ * @package Magento\Quote\Setup\Patch
  */
 class ConvertSerializedDataToJson implements DataPatchInterface, PatchVersionInterface
 {
@@ -33,8 +36,6 @@ class ConvertSerializedDataToJson implements DataPatchInterface, PatchVersionInt
     /**
      * PatchInitial constructor.
      * @param \Magento\Framework\Setup\ModuleDataSetupInterface $moduleDataSetup
-     * @param QuoteSetupFactory $quoteSetupFactory
-     * @param ConvertSerializedDataToJsonFactory $convertSerializedDataToJsonFactory
      */
     public function __construct(
         \Magento\Framework\Setup\ModuleDataSetupInterface $moduleDataSetup,
@@ -47,7 +48,7 @@ class ConvertSerializedDataToJson implements DataPatchInterface, PatchVersionInt
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function apply()
     {
@@ -56,7 +57,7 @@ class ConvertSerializedDataToJson implements DataPatchInterface, PatchVersionInt
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public static function getDependencies()
     {
@@ -66,7 +67,7 @@ class ConvertSerializedDataToJson implements DataPatchInterface, PatchVersionInt
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public static function getVersion()
     {
@@ -74,7 +75,7 @@ class ConvertSerializedDataToJson implements DataPatchInterface, PatchVersionInt
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getAliases()
     {

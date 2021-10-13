@@ -12,7 +12,7 @@ namespace Magento\Quote\Model\Quote\Address;
 interface CustomAttributeListInterface
 {
     /**
-     * Retrieve list of quote address custom attributes
+     * Retrieve list of quote addresss custom attributes
      *
      * @return array
      */

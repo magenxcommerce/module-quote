@@ -8,8 +8,6 @@ namespace Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote;
 
 /**
- * Quote item model.
- *
  * @api
  * @method int getParentItemId()
  * @method \Magento\Quote\Model\Quote\Address\Item setParentItemId(int $value)
@@ -48,8 +46,6 @@ use Magento\Quote\Model\Quote;
  * @method \Magento\Quote\Model\Quote\Address\Item setSuperProductId(int $value)
  * @method int getParentProductId()
  * @method \Magento\Quote\Model\Quote\Address\Item setParentProductId(int $value)
- * @method int getStoreId()
- * @method \Magento\Quote\Model\Quote\Address\Item setStoreId(int $value)
  * @method string getSku()
  * @method \Magento\Quote\Model\Quote\Address\Item setSku(string $value)
  * @method string getImage()
@@ -105,7 +101,7 @@ class Item extends \Magento\Quote\Model\Quote\Item\AbstractItem
     protected $_quote;
 
     /**
-     * @inheritdoc
+     * @return void
      */
     protected function _construct()
     {
@@ -113,7 +109,7 @@ class Item extends \Magento\Quote\Model\Quote\Item\AbstractItem
     }
 
     /**
-     * @inheritdoc
+     * @return $this|\Magento\Quote\Model\Quote\Item\AbstractItem
      */
     public function beforeSave()
     {
@@ -158,8 +154,6 @@ class Item extends \Magento\Quote\Model\Quote\Item\AbstractItem
     }
 
     /**
-     * Import quote item.
-     *
      * @param \Magento\Quote\Model\Quote\Item $quoteItem
      * @return $this
      */
@@ -174,8 +168,6 @@ class Item extends \Magento\Quote\Model\Quote\Item\AbstractItem
             $quoteItem->getProductId()
         )->setProduct(
             $quoteItem->getProduct()
-        )->setStoreId(
-            $quoteItem->getStoreId()
         )->setSku(
             $quoteItem->getSku()
         )->setName(
@@ -198,10 +190,10 @@ class Item extends \Magento\Quote\Model\Quote\Item\AbstractItem
     }
 
     /**
-     * @inheritdoc
-     * @since 101.1.1
+     * @param string $code
+     * @return \Magento\Catalog\Model\Product\Configuration\Item\Option\OptionInterface|null
      */
-    public function getOptionByCode($code)
+    public function getOptionBycode($code)
     {
         if ($this->getQuoteItem()) {
             return $this->getQuoteItem()->getOptionBycode($code);

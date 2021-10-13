@@ -3,51 +3,21 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Quote\Test\Unit\Model\Quote\Address\Total;
 
-use Magento\Framework\Pricing\PriceCurrencyInterface as PriceRounder;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-use Magento\Quote\Api\Data\ShippingAssignmentInterface;
-use Magento\Quote\Model\Quote;
-use Magento\Quote\Model\Quote\Address\Total;
-use Magento\Quote\Model\Quote\Address\Total\Grand;
-use PHPUnit\Framework\MockObject\MockObject as ObjectMock;
-use PHPUnit\Framework\TestCase;
 
-/**
- * Grand totals collector test.
- */
-class GrandTest extends TestCase
+class GrandTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var PriceRounder|ObjectMock
+     * @var \Magento\Quote\Model\Quote\Address\Total\Grand
      */
-    private $priceRounder;
+    protected $model;
 
-    /**
-     * @var Grand
-     */
-    private $model;
-
-    /**
-     * @inheritDoc
-     */
-    protected function setUp(): void
+    protected function setUp()
     {
-        $this->priceRounder = $this->getMockBuilder(PriceRounder::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['roundPrice'])
-            ->getMockForAbstractClass();
-
-        $helper = new ObjectManager($this);
-        $this->model = $helper->getObject(
-            Grand::class,
-            [
-                'priceRounder' => $this->priceRounder,
-            ]
-        );
+        $objectManager = new ObjectManager($this);
+        $this->model = $objectManager->getObject(\Magento\Quote\Model\Quote\Address\Total\Grand::class);
     }
 
     public function testCollect()
@@ -57,14 +27,14 @@ class GrandTest extends TestCase
         $grandTotal = 6.4; // 1 + 2 + 3.4
         $grandTotalBase = 15.7; // 4 + 5 + 6.7
 
-        $this->priceRounder->expects($this->at(0))->method('roundPrice')->willReturn($grandTotal + 2);
-        $this->priceRounder->expects($this->at(1))->method('roundPrice')->willReturn($grandTotalBase + 2);
-
-        $totalMock = $this->getMockBuilder(Total::class)
-            ->addMethods(['setGrandTotal', 'setBaseGrandTotal', 'getGrandTotal', 'getBaseGrandTotal'])
-            ->onlyMethods(['getAllTotalAmounts', 'getAllBaseTotalAmounts'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $totalMock = $this->createPartialMock(\Magento\Quote\Model\Quote\Address\Total::class, [
+                'getAllTotalAmounts',
+                'getAllBaseTotalAmounts',
+                'setGrandTotal',
+                'setBaseGrandTotal',
+                'getGrandTotal',
+                'getBaseGrandTotal'
+            ]);
         $totalMock->expects($this->once())->method('getGrandTotal')->willReturn(2);
         $totalMock->expects($this->once())->method('getBaseGrandTotal')->willReturn(2);
         $totalMock->expects($this->once())->method('getAllTotalAmounts')->willReturn($totals);
@@ -73,8 +43,8 @@ class GrandTest extends TestCase
         $totalMock->expects($this->once())->method('setBaseGrandTotal')->with($grandTotalBase + 2);
 
         $this->model->collect(
-            $this->createMock(Quote::class),
-            $this->getMockForAbstractClass(ShippingAssignmentInterface::class),
+            $this->createMock(\Magento\Quote\Model\Quote::class),
+            $this->createMock(\Magento\Quote\Api\Data\ShippingAssignmentInterface::class),
             $totalMock
         );
     }

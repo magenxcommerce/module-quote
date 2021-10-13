@@ -7,7 +7,6 @@
 
 namespace Magento\Quote\Model;
 
-use Magento\Framework\Exception\LocalizedException;
 use \Magento\Quote\Api\CouponManagementInterface;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
@@ -37,7 +36,7 @@ class CouponManagement implements CouponManagementInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function get($cartId)
     {
@@ -47,7 +46,7 @@ class CouponManagement implements CouponManagementInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function set($cartId, $couponCode)
     {
@@ -64,12 +63,9 @@ class CouponManagement implements CouponManagementInterface
         try {
             $quote->setCouponCode($couponCode);
             $this->quoteRepository->save($quote->collectTotals());
-        } catch (LocalizedException $e) {
-            throw new CouldNotSaveException(__('The coupon code couldn\'t be applied: ' .$e->getMessage()), $e);
         } catch (\Exception $e) {
             throw new CouldNotSaveException(
-                __("The coupon code couldn't be applied. Verify the coupon code and try again."),
-                $e
+                __("The coupon code couldn't be applied. Verify the coupon code and try again.")
             );
         }
         if ($quote->getCouponCode() != $couponCode) {
@@ -79,7 +75,7 @@ class CouponManagement implements CouponManagementInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function remove($cartId)
     {
